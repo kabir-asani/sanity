@@ -2,6 +2,7 @@ import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { cubicOut } from 'svelte/easing';
 import type { TransitionConfig } from 'svelte/transition';
+import { setMode, toggleMode } from 'mode-watcher';
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -54,3 +55,34 @@ export const flyAndScale = (
 		easing: cubicOut
 	};
 };
+
+export type modeVariant = 'light' | 'dark' | 'system';
+
+export const watchThemeUpdates = () => {
+	window.matchMedia('(prefers-color-scheme: dark)').onchange = (e) => updateThemeMode();
+};
+
+export const updateThemeMode = () => {
+	const savedMode = localStorage.getItem('themeMode');
+	if (savedMode) {
+		setMode(savedMode as modeVariant);
+	} else {
+		const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+		setMode(prefersDark ? 'dark' : 'light');
+	}
+};
+
+export function setThemeMode(mode: modeVariant) {
+	setMode(mode);
+	localStorage.setItem('themeMode', mode);
+}
+
+export function toggleThemeMode() {
+	toggleMode();
+}
+
+export function resetThemeMode() {
+	localStorage.removeItem('themeMode');
+	const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+	setMode(prefersDark ? 'dark' : 'light');
+}
